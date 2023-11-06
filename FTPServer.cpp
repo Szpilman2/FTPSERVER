@@ -1,8 +1,20 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <filesystem>
 #include "CommandParser.cpp"
 using namespace std;
+
+class FileSystem{
+    public:
+        void RenameFile(const char* oldName, const char* newName){
+            rename( oldName, newName);
+        }
+
+    
+};
+
+
 
 class FTPServer{
     
@@ -18,10 +30,13 @@ class FTPServer{
 
     private:
         CommandParser parser;
+        
 };
 
 int main() {
-    FTPServer server;
-    server.getCommand();
+    //FTPServer server;
+    //server.getCommand();
+    FileSystem filesys;
+    filesys.RenameFile("test1.txt", "test2.txt");
     return 0;
 }
