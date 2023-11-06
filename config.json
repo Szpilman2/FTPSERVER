@@ -1,0 +1,14 @@
+{
+	"IP":"127.0.0.0",
+	"Port" : "3267",
+	"Users" : {
+		"user1":{
+			"name" : "peyman",
+			"pass" : "shabani123"
+		},
+		"user2":{
+			"name": "Zeynab",
+			"pass": "kabiri123"
+		}
+	}
+}
