@@ -52,7 +52,7 @@ class FileSystem{
         }
         void removeDirectory(string directoryName){
             if(this -> existsDirecotryInPath(directoryName)){
-                cout << "deleting this directory ..." << endl;
+                filesystem::remove_all(directoryName);
             }
             else{
                 error("Provided directory name is not in current path...");
@@ -60,7 +60,7 @@ class FileSystem{
         }
         void removeFile(string fileName){
             if (this -> existsFileInPath(fileName)){
-                cout << "deleting your file..." << endl;
+                filesystem::remove(fileName);
             }
             else{
                 error("Provided file name is not in current path...");
@@ -69,7 +69,7 @@ class FileSystem{
         
     private:
         filesystem::path workingDirectory;
-        string rootDirectory;
+        filesystem::path rootDirectory;
         bool is_path_directory(const filesystem::path newPath){
             filesystem::directory_entry folder(newPath);
             if(folder.is_directory()){
