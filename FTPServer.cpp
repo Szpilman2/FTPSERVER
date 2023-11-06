@@ -185,15 +185,27 @@ class CommandParser{
                 }
             }
             else if(commandList[0] == "LS"){
-                cout << "this is LS command" << endl;
+                serverfilesystem->listFiles();
                 return false;
             }
             else if(commandList[0] == "CWD"){
-                cout << "this is CWD command" << endl;
+                if (commandList.size() != 2){
+                    error("CWD command should have 2 arguments.");
+                }
+                else{
+                    serverfilesystem->changeWorkingDirectory(commandList[1]);
+                    cout << "250 Directory changed to " << commandList[1] << endl;
+                }
                 return false;
             }
             else if (commandList[0] == "RENAME"){
-                cout << "this is a Rename command." << endl;
+                if (commandList.size() != 3){
+                    error("RENAME command should have 3 arguments.");
+                }
+                else{
+                    serverfilesystem->RenameFile(commandList[1].c_str(), commandList[2].c_str());
+                    cout << "250 Rename successful: " << commandList[1] << " renamed to " << commandList[2];
+                }
                 return false;
             }
             else if (commandList[0] == "RETR"){
@@ -205,7 +217,7 @@ class CommandParser{
                 return false;
             }
             else if (commandList[0] == "quit"){
-                cout << "this is quit command" << endl;
+                cout << "221 Goodbye!" << endl;
                 return true;
             }
             
