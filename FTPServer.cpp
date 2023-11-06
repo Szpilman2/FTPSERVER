@@ -2,7 +2,10 @@
 #include <sstream>
 #include <vector>
 #include <filesystem>
+#include <fstream>
+#include <jsoncpp/json/value.h> 
 #include "CommandParser.cpp"
+#include <jsoncpp/json/json.h>
 using namespace std;
 
 class FileSystem{
@@ -121,17 +124,49 @@ class FTPServer{
         
 };
 
+class JsonParser{
+    
+    public:
+        JsonParser(string fileName){
+            ifstream file(fileName);
+            this->reader.parse(file, this->actualJson);
+        }
+        void getValueFromJson(string str){
+            cout << this->actualJson[str] << endl;
+        }
+    private:
+        Json::Value actualJson;
+        Json::Reader reader;
+};
+
 int main() {
     //FTPServer server;
     //server.getCommand();
-    FileSystem filesys("/home/peyman/Desktop/CPP/FTP_Server/FTPSERVER/serverDrive");
+    //FileSystem filesys("/home/peyman/Desktop/CPP/FTP_Server/FTPSERVER/serverDrive");
     //filesys.RenameFile("test1.txt", "test2.txt");
     //filesys.WorkingDirectory();
     //filesys.listFiles();
-    filesys.changeWorkingDirectory("dir2");
-    filesys.PrintWorkingDirectory();
+    //filesys.changeWorkingDirectory("dir2");
+    //filesys.PrintWorkingDirectory();
     // filesys.listFiles();
     //filesys.removeDirectory("dir2");
-    filesys.removeFile("shab.txt");
+    //filesys.removeFile("shab.txt");
+
+    // ifstream file("file.json");
+    // Json::Value actualJson;
+    // Json::Reader reader;
+
+    // Using the reader, we are parsing the json file
+    // reader.parse(file, actualJson);
+
+    // The actual json has the json data
+    // cout << "Total json data:\n" << actualJson << endl;
+
+    // accessing individual parameters from the file
+    // cout << "Name:" << actualJson["Name"] << endl;
+    // cout << "Dob:" << actualJson["Dob"] << endl;
+    // cout << "College:" << actualJson["College"] << endl;
+    JsonParser jparser("file.json");
+    jparser.getValueFromJson("College");
     return 0;
 }
