@@ -182,6 +182,7 @@ class FTPServer{
                 }else{
                     cout << "230 user " << name << " logged in." << endl;
                     this -> setLogIn(name,pass);
+                    this -> getCommand();
                 }
             }
             else{
