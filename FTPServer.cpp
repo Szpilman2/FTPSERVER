@@ -128,6 +128,7 @@ class User{
             this -> name = name;
             this -> password = password;
             this -> downloadCapacity = 16000;
+            this -> loggedIn = false;
         }
         void decreaseDownloadCapacity(int amount){
             this -> downloadCapacity -= amount;
@@ -135,11 +136,24 @@ class User{
         void printUserInfo(){
             cout << this->name << "<==>" << this->password << "<==>" << this->downloadCapacity << endl;
         }
+        void setLoggedIn(){
+            this->loggedIn = true;
+        }
+        string getUserName(){
+            return this->name;
+        }
+        string getPassword(){
+            return this->password;
+        }
+        bool getLoginStatus(){
+            return this->loggedIn;
+        }
 
     private:
         string name;
         string password;
         int downloadCapacity;
+        bool loggedIn;
 };
 
 class FTPServer{
@@ -148,7 +162,31 @@ class FTPServer{
         FTPServer() : jsparser("config.json") {
             this->portNumber = this->jsparser.getValueFromJson("Port");
             this->IP = this->jsparser.getValueFromJson("IP");
-            this -> addSubscribedUsers();    
+            this -> addSubscribedUsers();
+            this -> getUserInformation();    
+        }
+
+        void getUserInformation(){
+            string name;
+            string pass;
+            cout << "Please Enter your username: [provide your information in this format: User <userName>]" << endl ;
+            getline(cin, name);
+            name = this->refactorInputString(name);
+            if(this -> isAuthenticatedUser(name)){
+                cout << "331 Password required for:" << name << "[provide your information in this format: Pass <userPassword>]" << endl;
+                getline(cin, pass);
+                pass = this->refactorInputString(pass);
+                if (!(this -> isAuthenticatePassword(name,pass)) || this -> isLogedIn(name)){
+                    cout << "503 Bad sequence of commands." << endl;
+                    cout << "530 Login incorrect." << endl;
+                }else{
+                    cout << "230 user " << name << " logged in." << endl;
+                }
+            }
+            else{
+                cout << "530 Login incorrect." << endl;
+            }
+            
         }
         void getCommand(){
             string str;
@@ -174,6 +212,44 @@ class FTPServer{
                                                     formattedJson["Users"][userStr]["pass"].asString()));
                 userStr = "";
             }
+        }
+
+        string refactorInputString(string str){
+            size_t subStrIndex = 0;
+            subStrIndex = str.find(" ", 0);
+            str = str.substr(subStrIndex + 1, str.size() - subStrIndex);
+            return str;
+        }
+
+        bool isAuthenticatedUser(string username){
+            for (auto *v : this -> serverUsers){
+                if (v->getUserName() == username){
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        bool isAuthenticatePassword(string username, string password){
+            for (auto *v : this -> serverUsers){
+                if (v->getUserName() == username){
+                    if (v->getPassword() == password){
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        bool isLogedIn(string username){
+            for (auto *v : this -> serverUsers){
+                if (v->getUserName() == username){
+                    if (v->getLoginStatus() == true){
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
         
 };
