@@ -26,8 +26,7 @@ class FileSystem{
             rename( oldName, newName);
         }
         void PrintWorkingDirectory(){
-            // cout << "Current path is " << filesystem::current_path() << endl; 
-            cout << "Current path is: " << this->workingDirectory << endl;
+            cout << "257 " << this->workingDirectory << " is the current directory."<<endl;
         }
         void listFiles(){
             cout << "contents in this directory are ---> " << endl;
@@ -113,7 +112,8 @@ class FileSystem{
 
 class CommandParser{
     public:
-        CommandParser(){
+        CommandParser(string serverRootDirectory) {
+            serverfilesystem = new FileSystem(serverRootDirectory);
             this->commandList.clear();
         }
         vector<string> commandFactory(string command){
@@ -123,7 +123,9 @@ class CommandParser{
                 if (commandList.size() != 1){
                     error("PWD Command Used with invalid number of Arguments.");
                 }
-                cout << "this is PWD command" << endl;
+                else{
+                    serverfilesystem->PrintWorkingDirectory();
+                }
                 return commandList;
             }
             else if (commandList[0] == "MKD"){
@@ -180,6 +182,7 @@ class CommandParser{
 
     private:
         vector<string> commandList;
+        FileSystem* serverfilesystem;
         void split(string s, string delimiter = " ") {
             size_t pos_start = 0, pos_end, delim_len = delimiter.length();
             string token;
@@ -251,6 +254,7 @@ class FTPServer{
     
     public:
         FTPServer() : jsparser("config.json") {
+            this->parser = new CommandParser(this->jsparser.getValueFromJson("rootDirectory"));
             this->portNumber = this->jsparser.getValueFromJson("Port");
             this->IP = this->jsparser.getValueFromJson("IP");
             this -> addSubscribedUsers();
@@ -284,14 +288,14 @@ class FTPServer{
         void getCommand(){
             string str;
             while(getline(cin, str)){
-                vector<string> result = this->parser.commandFactory(str);
+                vector<string> result = this->parser->commandFactory(str);
                 if (result[0] == "quit") {break;}
-                this->parser.clearBuffer();
+                this->parser->clearBuffer();
             }
         }
 
     private:
-        CommandParser parser;
+        CommandParser* parser;
         JsonParser jsparser;
         vector<User*> serverUsers;
         string portNumber;

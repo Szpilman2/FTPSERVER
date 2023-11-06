@@ -2,6 +2,7 @@
 	"IP":"127.0.0.0",
 	"Port" : "3267",
 	"UserCount" : "2",
+	"rootDirectory" : "/home/peyman/Desktop/CPP/FTP_Server/FTPSERVER/serverDrive",
 	"Users" : {
 		"user1":{
 			"name" : "Peyman",
