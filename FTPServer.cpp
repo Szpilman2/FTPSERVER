@@ -114,9 +114,22 @@ class JsonParser{
         string getValueFromJson(string str){
             return this->actualJson[str].asString();
         }
+        Json::Value getFormattedJson(){
+            return this->actualJson;
+        }
     private:
         Json::Value actualJson;
         Json::Reader reader;
+};
+
+class User{
+    public:
+
+
+    private:
+        string name;
+        string password;
+        int downloadCapacity;
 };
 
 class FTPServer{
@@ -125,8 +138,15 @@ class FTPServer{
         FTPServer() : jsparser("config.json") {
             this->portNumber = this->jsparser.getValueFromJson("Port");
             this->IP = this->jsparser.getValueFromJson("IP");
+            string usercount = this->jsparser.getValueFromJson("UserCount");
             cout << this->portNumber << endl;
             cout << this->IP << endl;
+            auto formattedJson = jsparser.getFormattedJson();
+
+            for(int index = 0; index < 4; index++){
+                cout << formattedJson["Users"]["user1"]["name"] << endl;
+            }
+            
         }
         void getCommand(){
             string str;
@@ -140,6 +160,7 @@ class FTPServer{
     private:
         CommandParser parser;
         JsonParser jsparser;
+        vector<User> serverUsers;
         string portNumber;
         string IP;
         
