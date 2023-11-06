@@ -181,6 +181,7 @@ class FTPServer{
                     cout << "530 Login incorrect." << endl;
                 }else{
                     cout << "230 user " << name << " logged in." << endl;
+                    this -> setLogIn(name,pass);
                 }
             }
             else{
@@ -250,6 +251,16 @@ class FTPServer{
                 }
             }
             return false;
+        }
+
+        void setLogIn(string username,string password){
+            for (auto *v : this -> serverUsers){
+                if (v->getUserName() == username){
+                    if (v->getPassword() == password){
+                        v->setLoggedIn();
+                    }
+                }
+            }
         }
         
 };
