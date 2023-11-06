@@ -8,6 +8,9 @@
 #include <jsoncpp/json/json.h>
 using namespace std;
 
+/*
+TODO: delete directory should work for both absolute and relative path. I fixed relative path.
+*/
 
 void error(string str){
     cout << str << endl;
@@ -74,6 +77,27 @@ class FileSystem{
                 error("Provided file name is not in current path...");
             }
         }
+        void makeNewDirectory(filesystem::path pathDir){
+            if (pathDir.is_absolute()){
+                filesystem::create_directory(pathDir);  
+            }
+            else if(pathDir.is_relative()){
+                filesystem::path fullPath = this->workingDirectory / pathDir;
+                filesystem::create_directory(fullPath);
+            }
+        }
+
+        bool isPathAbsolute(filesystem::path pathDir){
+            return pathDir.is_absolute(); 
+        }
+
+        bool isPathRelative(filesystem::path pathDir){
+            return pathDir.is_relative();
+        }
+
+        string getWorkingDirectory(){
+            return this->workingDirectory.u8string();
+        }
         
     private:
         filesystem::path workingDirectory;
@@ -116,7 +140,7 @@ class CommandParser{
             serverfilesystem = new FileSystem(serverRootDirectory);
             this->commandList.clear();
         }
-        vector<string> commandFactory(string command){
+        bool commandFactory(string command){
             split(command);
                 
             if(commandList[0] == "PWD"){
@@ -126,54 +150,67 @@ class CommandParser{
                 else{
                     serverfilesystem->PrintWorkingDirectory();
                 }
-                return commandList;
+                return false;
             }
             else if (commandList[0] == "MKD"){
                 if (commandList.size() != 2){
-                    error("MKD command with invalid arguments.");
-                    cout << commandList.size() << endl;
+                    error("MKD command used with invalid Number of arguments.");
                 }
                 else{
-                    cout << commandList.size() << endl;
+                    serverfilesystem->makeNewDirectory(commandList[1]);
+                    if(serverfilesystem->isPathAbsolute(commandList[1])){
+                        cout << "257 " << commandList[1] << " directory created.";
+                    }
+                    else if(serverfilesystem->isPathRelative(commandList[1])){
+                        cout << "257 " << serverfilesystem->getWorkingDirectory() << "/" << commandList[1] << " directory created."<< endl;
+                    }
+                    
                 }
-                return commandList;
+                return false;
             }
             else if (commandList[0] == "DELE"){
                 if(commandList[1] == "-d"){
-                    cout << "this is a directory delete command." << endl;
-                    return commandList;
-                }else if(commandList[1] == "-f"){
-                    cout << "this is a file delete command." << endl;
-                    return commandList;
+                    serverfilesystem->removeDirectory(commandList[2]);
+                    cout << "250 " << commandList[2] << " directory deleted." << endl;
+                    return false;
+                }
+                else if(commandList[1] == "-f"){
+                    serverfilesystem->removeFile(commandList[2]);
+                    cout << "250 " << commandList[2] << " file deleted." << endl;
+                    return false;
+                }
+                else{
+                    error("DELE argeuments are -d or -f, you entered wrong...");
+                    return false;
                 }
             }
             else if(commandList[0] == "LS"){
                 cout << "this is LS command" << endl;
-                return commandList;
+                return false;
             }
             else if(commandList[0] == "CWD"){
                 cout << "this is CWD command" << endl;
-                return commandList;
+                return false;
             }
             else if (commandList[0] == "RENAME"){
                 cout << "this is a Rename command." << endl;
-                return commandList;
+                return false;
             }
             else if (commandList[0] == "RETR"){
                 cout << "this is a download file command" << endl;
-                return commandList;
+                return false;
             }
             else if (commandList[0] == "HELP"){
                 cout << "=======================HELP==========================" << endl;
-                return commandList;
+                return false;
             }
             else if (commandList[0] == "quit"){
                 cout << "this is quit command" << endl;
-                return commandList;
+                return true;
             }
             
             cout << "this is an invalid command" << endl;
-            return commandList;
+            return false;
             
     }
 
@@ -288,8 +325,8 @@ class FTPServer{
         void getCommand(){
             string str;
             while(getline(cin, str)){
-                vector<string> result = this->parser->commandFactory(str);
-                if (result[0] == "quit") {break;}
+                bool isQuit = this->parser->commandFactory(str);
+                if (isQuit) {break;}
                 this->parser->clearBuffer();
             }
         }
