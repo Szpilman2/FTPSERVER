@@ -124,7 +124,17 @@ class JsonParser{
 
 class User{
     public:
-
+        User(string name, string password){
+            this -> name = name;
+            this -> password = password;
+            this -> downloadCapacity = 16000;
+        }
+        void decreaseDownloadCapacity(int amount){
+            this -> downloadCapacity -= amount;
+        }
+        void printUserInfo(){
+            cout << this->name << "<==>" << this->password << "<==>" << this->downloadCapacity << endl;
+        }
 
     private:
         string name;
@@ -138,15 +148,7 @@ class FTPServer{
         FTPServer() : jsparser("config.json") {
             this->portNumber = this->jsparser.getValueFromJson("Port");
             this->IP = this->jsparser.getValueFromJson("IP");
-            string usercount = this->jsparser.getValueFromJson("UserCount");
-            cout << this->portNumber << endl;
-            cout << this->IP << endl;
-            auto formattedJson = jsparser.getFormattedJson();
-
-            for(int index = 0; index < 4; index++){
-                cout << formattedJson["Users"]["user1"]["name"] << endl;
-            }
-            
+            this -> addSubscribedUsers();    
         }
         void getCommand(){
             string str;
@@ -160,9 +162,19 @@ class FTPServer{
     private:
         CommandParser parser;
         JsonParser jsparser;
-        vector<User> serverUsers;
+        vector<User*> serverUsers;
         string portNumber;
         string IP;
+
+        void addSubscribedUsers(){
+            auto formattedJson = jsparser.getFormattedJson();
+            for(int index = 1; index <= stoi(this->jsparser.getValueFromJson("UserCount")); index++){
+                string userStr = "user" + to_string(index); 
+                this->serverUsers.push_back(new User(formattedJson["Users"][userStr]["name"].asString(),
+                                                    formattedJson["Users"][userStr]["pass"].asString()));
+                userStr = "";
+            }
+        }
         
 };
 

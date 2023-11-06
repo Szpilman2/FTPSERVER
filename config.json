@@ -1,7 +1,7 @@
 {
 	"IP":"127.0.0.0",
 	"Port" : "3267",
-	"UserCount" : "4",
+	"UserCount" : "2",
 	"Users" : {
 		"user1":{
 			"name" : "peyman",
