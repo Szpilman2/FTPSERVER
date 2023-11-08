@@ -79,6 +79,10 @@ int main() {
                     break;
                 }
             }
+            if (message == "quit"){
+                    valid = false;
+                    break;
+            }
             getline(cin, message);
             client.sendData(message);
         }

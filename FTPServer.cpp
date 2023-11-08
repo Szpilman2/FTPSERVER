@@ -58,8 +58,8 @@ class FileSystem{
         void RenameFile(const char* oldName, const char* newName){
             rename( oldName, newName);
         }
-        void PrintWorkingDirectory(){
-            cout << "257 " << this->workingDirectory << " is the current directory."<<endl;
+        string PrintWorkingDirectory(){
+            return this->workingDirectory;
         }
         void listFiles(){
             cout << "contents in this directory are ---> " << endl;
@@ -262,8 +262,7 @@ class CommandParser{
                     error("PWD Command Used with invalid number of Arguments.");
                 }
                 else{
-                    serverfilesystem->PrintWorkingDirectory();
-                    networkHandler->sendData("PWD");
+                    networkHandler->sendData("257 " + serverfilesystem->PrintWorkingDirectory() + " is the current directory.");
                     FileHandler::writeToFile("User has entered command: PWD");
                 }
                 return false;
@@ -275,11 +274,11 @@ class CommandParser{
                 else{
                     serverfilesystem->makeNewDirectory(commandList[1]);
                     if(serverfilesystem->isPathAbsolute(commandList[1])){
-                        cout << "257 " << commandList[1] << " directory created.";
+                        //cout << "257 " << commandList[1] << " directory created.";
                         networkHandler->sendData("257 " + commandList[1] + " directory created.");
                     }
                     else if(serverfilesystem->isPathRelative(commandList[1])){
-                        cout << "257 " << serverfilesystem->getWorkingDirectory() << "/" << commandList[1] << " directory created."<< endl;
+                        //cout << "257 " << serverfilesystem->getWorkingDirectory() << "/" << commandList[1] << " directory created."<< endl;
                         networkHandler->sendData("257 " + serverfilesystem->getWorkingDirectory() + "/" + commandList[1] + " directory created.");
                     }
                     FileHandler::writeToFile("User has entered command: MKD " + commandList[1]);
@@ -289,14 +288,14 @@ class CommandParser{
             else if (commandList[0] == "DELE"){
                 if(commandList[1] == "-d"){
                     serverfilesystem->removeDirectory(commandList[2]);
-                    cout << "250 " << commandList[2] << " directory deleted." << endl;
+                    //cout << "250 " << commandList[2] << " directory deleted." << endl;
                     networkHandler->sendData("250 " + commandList[2] + " directory deleted.");
                     FileHandler::writeToFile("User has entered command: DELE -D " + commandList[2]);
                     return false;
                 }
                 else if(commandList[1] == "-f"){
                     serverfilesystem->removeFile(commandList[2]);
-                    cout << "250 " << commandList[2] << " file deleted." << endl;
+                    //cout << "250 " << commandList[2] << " file deleted." << endl;
                     networkHandler->sendData("250 " + commandList[2] + " file deleted.");
                     FileHandler::writeToFile("User has entered command: DELE -f " + commandList[2]);
                     return false;
@@ -318,7 +317,7 @@ class CommandParser{
                 }
                 else{
                     serverfilesystem->changeWorkingDirectory(commandList[1]);
-                    cout << "250 Directory changed to " << commandList[1] << endl;
+                    //cout << "250 Directory changed to " << commandList[1] << endl;
                     networkHandler->sendData("250 Directory changed to " + commandList[1]);
                     FileHandler::writeToFile("User has entered command: CWD " + commandList[1]);
                 }
@@ -330,27 +329,28 @@ class CommandParser{
                 }
                 else{
                     serverfilesystem->RenameFile(commandList[1].c_str(), commandList[2].c_str());
-                    cout << "250 Rename successful: " << commandList[1] << " renamed to " << commandList[2];
+                    //cout << "250 Rename successful: " << commandList[1] << " renamed to " << commandList[2];
                     networkHandler->sendData("250 Rename successful: " + commandList[1] + " renamed to " + commandList[2]);
                     FileHandler::writeToFile("User has entered command: RENAME " + commandList[1] + " " + commandList[2]);
                 }
                 return false;
             }
             else if (commandList[0] == "RETR"){
-                cout << "this is a download file command" << endl;
+                //cout << "this is a download file command" << endl;
                 networkHandler->sendData("this is a download file command");
                 FileHandler::writeToFile("User has entered command: RETR");
                 return false;
             }
             else if (commandList[0] == "HELP"){
-                cout << "=======================HELP==========================" << endl;
+                //cout << "=======================HELP==========================" << endl;
                 networkHandler->sendData("=======================HELP==========================");
                 FileHandler::writeToFile("User has entered command: HELP");
                 return false;
             }
             else if (commandList[0] == "quit"){
-                cout << "221 Goodbye!" << endl;
-                networkHandler->sendData("quit");
+                //cout << "221 Goodbye!" << endl;
+                networkHandler->sendData("221 Goodbye!");
+                //networkHandler->sendData("quit");
                 FileHandler::writeToFile("User has entered command: quit");
                 return true;
             }
@@ -435,25 +435,25 @@ class FTPServer{
             string name;
             string pass;
             //cout << this->parser->getNetworkHandler()->receiveData();
-            cout << "Please Enter your username: [provide your information in this format: User <userName>]" << endl ;
+            //cout << "Please Enter your username: [provide your information in this format: User <userName>]" << endl ;
             this->parser->getNetworkHandler()->sendData("Please Enter your username: [provide your information in this format: User <userName>]");
             //cout << this->parser->getNetworkHandler()->receiveData() << endl;
             //getline(cin, name);
             name = this->parser->getNetworkHandler()->receiveData();
             name = this->refactorInputString(name);
             if(this -> isAuthenticatedUser(name)){
-                cout << "331 Password required for:" << name << "[provide your information in this format: Pass <userPassword>]" << endl;
+                //cout << "331 Password required for:" << name << "[provide your information in this format: Pass <userPassword>]" << endl;
                 this->parser->getNetworkHandler()->sendData("331 Password required for: " + name + " [provide your information in this format: Pass <userPassword>]");
                 //getline(cin, pass);
                 pass = this->parser->getNetworkHandler()->receiveData();
                 pass = this->refactorInputString(pass);
                 if (!(this -> isAuthenticatePassword(name,pass)) || this -> isLogedIn(name)){
-                    cout << "503 Bad sequence of commands." << endl;
+                    //cout << "503 Bad sequence of commands." << endl;
                     this->parser->getNetworkHandler()->sendData("503 Bad sequence of commands.");
-                    cout << "530 Login incorrect." << endl;
+                    //cout << "530 Login incorrect." << endl;
                     this->parser->getNetworkHandler()->sendData("530 Login incorrect.");
                 }else{
-                    cout << "230 user " << name << " logged in." << endl;
+                    //cout << "230 user " << name << " logged in." << endl;
                     this->parser->getNetworkHandler()->sendData("230 user " + name + " logged in.");
                     FileHandler::writeToFile("User " + name + " logged in.");
                     this -> setLogIn(name,pass);
@@ -461,7 +461,7 @@ class FTPServer{
                 }
             }
             else{
-                cout << "530 Login incorrect." << endl;
+                //cout << "530 Login incorrect." << endl;
                 this->parser->getNetworkHandler()->sendData("530 Login incorrect.");
             }
             
@@ -469,7 +469,7 @@ class FTPServer{
         void getCommand(){
             string str;
             bool isQuit = false;
-            
+
             while(!isQuit){
                 str = this->parser->getNetworkHandler()->receiveData();
                 bool isQuit = this->parser->commandFactory(str);
