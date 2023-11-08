@@ -5,7 +5,6 @@
 #include <fstream>
 #include <jsoncpp/json/value.h> 
 #include <jsoncpp/json/json.h>
-
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -64,8 +63,6 @@ class FileSystem{
         vector<string> listFiles(){
             vector<string> items;
             for (const auto & entry : filesystem::directory_iterator(this->workingDirectory))
-                //std::cout << entry.path() << entry.path().filename() <<std::endl;
-                //std::cout << entry.path().filename() <<std::endl;
                 items.push_back(entry.path().filename());
             return items;
         }
@@ -213,7 +210,6 @@ class NetworkHandler{
             cout << "Server is listening for connections..." << std::endl;
             FileHandler::writeToFile("Server is UP and is listening for connections ...");
 
-            // Accept a connection from a client
             clientSocket = accept(serverSocket, nullptr, nullptr);
             if (clientSocket == -1) {
                 std::cerr << "Server: Accept failed" << std::endl;
@@ -234,7 +230,7 @@ class NetworkHandler{
             if (bytesRead <= 0) {
                 return "";
             }
-            buffer[bytesRead] = '\0'; // Null-terminate the received data
+            buffer[bytesRead] = '\0';
             return std::string(buffer);
         }
 
@@ -276,11 +272,9 @@ class CommandParser{
                 else{
                     serverfilesystem->makeNewDirectory(commandList[1]);
                     if(serverfilesystem->isPathAbsolute(commandList[1])){
-                        //cout << "257 " << commandList[1] << " directory created.";
                         networkHandler->sendData("257 " + commandList[1] + " directory created.");
                     }
                     else if(serverfilesystem->isPathRelative(commandList[1])){
-                        //cout << "257 " << serverfilesystem->getWorkingDirectory() << "/" << commandList[1] << " directory created."<< endl;
                         networkHandler->sendData("257 " + serverfilesystem->getWorkingDirectory() + "/" + commandList[1] + " directory created.");
                     }
                     FileHandler::writeToFile("User has entered command: MKD " + commandList[1]);
@@ -290,14 +284,12 @@ class CommandParser{
             else if (commandList[0] == "DELE"){
                 if(commandList[1] == "-d"){
                     serverfilesystem->removeDirectory(commandList[2]);
-                    //cout << "250 " << commandList[2] << " directory deleted." << endl;
                     networkHandler->sendData("250 " + commandList[2] + " directory deleted.");
                     FileHandler::writeToFile("User has entered command: DELE -D " + commandList[2]);
                     return false;
                 }
                 else if(commandList[1] == "-f"){
                     serverfilesystem->removeFile(commandList[2]);
-                    //cout << "250 " << commandList[2] << " file deleted." << endl;
                     networkHandler->sendData("250 " + commandList[2] + " file deleted.");
                     FileHandler::writeToFile("User has entered command: DELE -f " + commandList[2]);
                     return false;
@@ -322,7 +314,6 @@ class CommandParser{
                 }
                 else{
                     serverfilesystem->changeWorkingDirectory(commandList[1]);
-                    //cout << "250 Directory changed to " << commandList[1] << endl;
                     networkHandler->sendData("250 Directory changed to " + commandList[1]);
                     FileHandler::writeToFile("User has entered command: CWD " + commandList[1]);
                 }
@@ -334,28 +325,23 @@ class CommandParser{
                 }
                 else{
                     serverfilesystem->RenameFile(commandList[1].c_str(), commandList[2].c_str());
-                    //cout << "250 Rename successful: " << commandList[1] << " renamed to " << commandList[2];
                     networkHandler->sendData("250 Rename successful: " + commandList[1] + " renamed to " + commandList[2]);
                     FileHandler::writeToFile("User has entered command: RENAME " + commandList[1] + " " + commandList[2]);
                 }
                 return false;
             }
             else if (commandList[0] == "RETR"){
-                //cout << "this is a download file command" << endl;
                 networkHandler->sendData("this is a download file command");
                 FileHandler::writeToFile("User has entered command: RETR");
                 return false;
             }
             else if (commandList[0] == "HELP"){
-                //cout << "=======================HELP==========================" << endl;
                 networkHandler->sendData("=======================HELP==========================");
                 FileHandler::writeToFile("User has entered command: HELP");
                 return false;
             }
             else if (commandList[0] == "quit"){
-                //cout << "221 Goodbye!" << endl;
                 networkHandler->sendData("221 Goodbye!");
-                //networkHandler->sendData("quit");
                 FileHandler::writeToFile("User has entered command: quit");
                 return true;
             }
@@ -439,34 +425,26 @@ class FTPServer{
         void getUserInformation(){
             string name;
             string pass;
-            //cout << this->parser->getNetworkHandler()->receiveData();
-            //cout << "Please Enter your username: [provide your information in this format: User <userName>]" << endl ;
             this->parser->getNetworkHandler()->sendData("Please Enter your username: [provide your information in this format: User <userName>]");
-            //cout << this->parser->getNetworkHandler()->receiveData() << endl;
-            //getline(cin, name);
             name = this->parser->getNetworkHandler()->receiveData();
             name = this->refactorInputString(name);
             if(this -> isAuthenticatedUser(name)){
-                //cout << "331 Password required for:" << name << "[provide your information in this format: Pass <userPassword>]" << endl;
+                
                 this->parser->getNetworkHandler()->sendData("331 Password required for: " + name + " [provide your information in this format: Pass <userPassword>]");
-                //getline(cin, pass);
                 pass = this->parser->getNetworkHandler()->receiveData();
                 pass = this->refactorInputString(pass);
                 if (!(this -> isAuthenticatePassword(name,pass)) || this -> isLogedIn(name)){
-                    //cout << "503 Bad sequence of commands." << endl;
                     this->parser->getNetworkHandler()->sendData("503 Bad sequence of commands.");
-                    //cout << "530 Login incorrect." << endl;
                     this->parser->getNetworkHandler()->sendData("530 Login incorrect.");
-                }else{
-                    //cout << "230 user " << name << " logged in." << endl;
-                    this->parser->getNetworkHandler()->sendData("230 user " + name + " logged in.");
+                }
+                else{
+                    this->parser->getNetworkHandler()->sendData("230 user " + name + " logged in.\n" + "**** Type Your Commands ****");
                     FileHandler::writeToFile("User " + name + " logged in.");
                     this -> setLogIn(name,pass);
                     this -> getCommand();
                 }
             }
             else{
-                //cout << "530 Login incorrect." << endl;
                 this->parser->getNetworkHandler()->sendData("530 Login incorrect.");
             }
             
