@@ -61,11 +61,13 @@ class FileSystem{
         string PrintWorkingDirectory(){
             return this->workingDirectory;
         }
-        void listFiles(){
-            cout << "contents in this directory are ---> " << endl;
+        vector<string> listFiles(){
+            vector<string> items;
             for (const auto & entry : filesystem::directory_iterator(this->workingDirectory))
                 //std::cout << entry.path() << entry.path().filename() <<std::endl;
-                std::cout << entry.path().filename() <<std::endl;
+                //std::cout << entry.path().filename() <<std::endl;
+                items.push_back(entry.path().filename());
+            return items;
         }
 
         void changeWorkingDirectory(const filesystem::path newPath){
@@ -306,8 +308,11 @@ class CommandParser{
                 }
             }
             else if(commandList[0] == "LS"){
-                serverfilesystem->listFiles();
-                networkHandler->sendData("LS command ...");
+                string items;
+                for (auto v : serverfilesystem->listFiles()){
+                    items = items + v + "\t";
+                }
+                networkHandler->sendData("contents in this directory are ===> \n" + items);
                 FileHandler::writeToFile("User has entered command: LS");
                 return false;
             }
