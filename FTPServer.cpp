@@ -226,6 +226,16 @@ class NetworkHandler{
             }
         }
 
+        string receiveData() {
+            char buffer[1024];
+            ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
+            if (bytesRead <= 0) {
+                return "";
+            }
+            buffer[bytesRead] = '\0'; // Null-terminate the received data
+            return std::string(buffer);
+        }
+
 
     private:
         JsonParser jsparser;
@@ -240,6 +250,9 @@ class CommandParser{
             serverfilesystem = new FileSystem(serverRootDirectory);
             networkHandler = new NetworkHandler();
             this->commandList.clear();
+        }
+        NetworkHandler* getNetworkHandler(){
+            return this->networkHandler;
         }
         bool commandFactory(string command){
             split(command);
@@ -421,18 +434,27 @@ class FTPServer{
         void getUserInformation(){
             string name;
             string pass;
+            //cout << this->parser->getNetworkHandler()->receiveData();
             cout << "Please Enter your username: [provide your information in this format: User <userName>]" << endl ;
-            getline(cin, name);
+            this->parser->getNetworkHandler()->sendData("Please Enter your username: [provide your information in this format: User <userName>]");
+            //cout << this->parser->getNetworkHandler()->receiveData() << endl;
+            //getline(cin, name);
+            name = this->parser->getNetworkHandler()->receiveData();
             name = this->refactorInputString(name);
             if(this -> isAuthenticatedUser(name)){
                 cout << "331 Password required for:" << name << "[provide your information in this format: Pass <userPassword>]" << endl;
-                getline(cin, pass);
+                this->parser->getNetworkHandler()->sendData("331 Password required for: " + name + " [provide your information in this format: Pass <userPassword>]");
+                //getline(cin, pass);
+                pass = this->parser->getNetworkHandler()->receiveData();
                 pass = this->refactorInputString(pass);
                 if (!(this -> isAuthenticatePassword(name,pass)) || this -> isLogedIn(name)){
                     cout << "503 Bad sequence of commands." << endl;
+                    this->parser->getNetworkHandler()->sendData("503 Bad sequence of commands.");
                     cout << "530 Login incorrect." << endl;
+                    this->parser->getNetworkHandler()->sendData("530 Login incorrect.");
                 }else{
                     cout << "230 user " << name << " logged in." << endl;
+                    this->parser->getNetworkHandler()->sendData("230 user " + name + " logged in.");
                     FileHandler::writeToFile("User " + name + " logged in.");
                     this -> setLogIn(name,pass);
                     this -> getCommand();
@@ -440,12 +462,16 @@ class FTPServer{
             }
             else{
                 cout << "530 Login incorrect." << endl;
+                this->parser->getNetworkHandler()->sendData("530 Login incorrect.");
             }
             
         }
         void getCommand(){
             string str;
-            while(getline(cin, str)){
+            bool isQuit = false;
+            
+            while(!isQuit){
+                str = this->parser->getNetworkHandler()->receiveData();
                 bool isQuit = this->parser->commandFactory(str);
                 if (isQuit) {break;}
                 this->parser->clearBuffer();

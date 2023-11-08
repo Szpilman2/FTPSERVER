@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+using namespace std;
 
 class Client {
 public:
@@ -30,6 +31,12 @@ public:
     ~Client() {
         // Close the client socket
         close(clientSocket);
+    }
+
+    void sendData(const std::string& data) {
+        if (clientSocket != -1) {
+            send(clientSocket, data.c_str(), data.length(), 0);
+        }
     }
 
     // Receive data from the server
@@ -61,6 +68,7 @@ int main() {
         // Send data to the server
         //client.sendData("Hello, Server!");
         bool valid = true;
+        string message;
         // Receive data from the server
         while(valid){
             std::string receivedData = client.receiveData();
@@ -68,8 +76,11 @@ int main() {
                 std::cout << "Received from server: " << receivedData << std::endl;
                 if (receivedData == "quit"){
                     valid = false;
+                    break;
                 }
             }
+            getline(cin, message);
+            client.sendData(message);
         }
     }
 
