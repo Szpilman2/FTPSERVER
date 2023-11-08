@@ -16,6 +16,32 @@ void error(string str){
     cout << str << endl;
 }
 
+class FileHandler {
+    public:
+
+        static void setFilePath(const string& path){
+            filePath = path;
+        }
+
+        static void writeToFile(const std::string& content) {
+
+            std::fstream file(FileHandler::filePath, std::ios::out | std::ios::app);
+            if (file.is_open()) {
+                auto time = std::time(nullptr);
+                file << put_time(gmtime(&time), "%c") << " => ";
+                file << content << endl;
+            } else {
+                error("There is a problem in working with files.");
+            }
+
+            file.close();
+        }
+
+    private:
+        static string filePath;
+};
+
+string FileHandler::filePath;
 
 class FileSystem{
     public:
@@ -149,6 +175,7 @@ class CommandParser{
                 }
                 else{
                     serverfilesystem->PrintWorkingDirectory();
+                    FileHandler::writeToFile("User has entered command: PWD");
                 }
                 return false;
             }
@@ -164,7 +191,7 @@ class CommandParser{
                     else if(serverfilesystem->isPathRelative(commandList[1])){
                         cout << "257 " << serverfilesystem->getWorkingDirectory() << "/" << commandList[1] << " directory created."<< endl;
                     }
-                    
+                    FileHandler::writeToFile("User has entered command: MKD " + commandList[1]);
                 }
                 return false;
             }
@@ -172,11 +199,13 @@ class CommandParser{
                 if(commandList[1] == "-d"){
                     serverfilesystem->removeDirectory(commandList[2]);
                     cout << "250 " << commandList[2] << " directory deleted." << endl;
+                    FileHandler::writeToFile("User has entered command: DELE -D " + commandList[2]);
                     return false;
                 }
                 else if(commandList[1] == "-f"){
                     serverfilesystem->removeFile(commandList[2]);
                     cout << "250 " << commandList[2] << " file deleted." << endl;
+                    FileHandler::writeToFile("User has entered command: DELE -f " + commandList[2]);
                     return false;
                 }
                 else{
@@ -186,6 +215,7 @@ class CommandParser{
             }
             else if(commandList[0] == "LS"){
                 serverfilesystem->listFiles();
+                FileHandler::writeToFile("User has entered command: LS");
                 return false;
             }
             else if(commandList[0] == "CWD"){
@@ -195,6 +225,7 @@ class CommandParser{
                 else{
                     serverfilesystem->changeWorkingDirectory(commandList[1]);
                     cout << "250 Directory changed to " << commandList[1] << endl;
+                    FileHandler::writeToFile("User has entered command: CWD " + commandList[1]);
                 }
                 return false;
             }
@@ -205,19 +236,23 @@ class CommandParser{
                 else{
                     serverfilesystem->RenameFile(commandList[1].c_str(), commandList[2].c_str());
                     cout << "250 Rename successful: " << commandList[1] << " renamed to " << commandList[2];
+                    FileHandler::writeToFile("User has entered command: RENAME " + commandList[1] + " " + commandList[2]);
                 }
                 return false;
             }
             else if (commandList[0] == "RETR"){
                 cout << "this is a download file command" << endl;
+                FileHandler::writeToFile("User has entered command: RETR");
                 return false;
             }
             else if (commandList[0] == "HELP"){
                 cout << "=======================HELP==========================" << endl;
+                FileHandler::writeToFile("User has entered command: HELP");
                 return false;
             }
             else if (commandList[0] == "quit"){
                 cout << "221 Goodbye!" << endl;
+                FileHandler::writeToFile("User has entered command: quit");
                 return true;
             }
             
@@ -310,6 +345,10 @@ class FTPServer{
             this -> getUserInformation();    
         }
 
+        ~ FTPServer() {
+            FileHandler::writeToFile("User " + this->getLoggedInUser() + " logged out.");
+        }
+
         void getUserInformation(){
             string name;
             string pass;
@@ -325,6 +364,7 @@ class FTPServer{
                     cout << "530 Login incorrect." << endl;
                 }else{
                     cout << "230 user " << name << " logged in." << endl;
+                    FileHandler::writeToFile("User " + name + " logged in.");
                     this -> setLogIn(name,pass);
                     this -> getCommand();
                 }
@@ -407,11 +447,22 @@ class FTPServer{
                 }
             }
         }
+
+        string getLoggedInUser(){
+            for (auto *v: this -> serverUsers){
+                if (this->isLogedIn(v->getUserName())){
+                    return v->getUserName();
+                }
+            }
+            return "";
+        }
         
 };
 
 
 int main() {
+    FileHandler::setFilePath("/home/peyman/Desktop/CPP/FTP_Server/FTPSERVER/log.txt");
     FTPServer server;
+    //FileHandler::writeToFile("Hello, World!");
     return 0;
 }
