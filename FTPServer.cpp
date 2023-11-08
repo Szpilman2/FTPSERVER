@@ -4,8 +4,12 @@
 #include <filesystem>
 #include <fstream>
 #include <jsoncpp/json/value.h> 
-//#include "CommandParser.cpp"
 #include <jsoncpp/json/json.h>
+
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+
 using namespace std;
 
 /*
@@ -160,129 +164,6 @@ class FileSystem{
     
 };
 
-class CommandParser{
-    public:
-        CommandParser(string serverRootDirectory) {
-            serverfilesystem = new FileSystem(serverRootDirectory);
-            this->commandList.clear();
-        }
-        bool commandFactory(string command){
-            split(command);
-                
-            if(commandList[0] == "PWD"){
-                if (commandList.size() != 1){
-                    error("PWD Command Used with invalid number of Arguments.");
-                }
-                else{
-                    serverfilesystem->PrintWorkingDirectory();
-                    FileHandler::writeToFile("User has entered command: PWD");
-                }
-                return false;
-            }
-            else if (commandList[0] == "MKD"){
-                if (commandList.size() != 2){
-                    error("MKD command used with invalid Number of arguments.");
-                }
-                else{
-                    serverfilesystem->makeNewDirectory(commandList[1]);
-                    if(serverfilesystem->isPathAbsolute(commandList[1])){
-                        cout << "257 " << commandList[1] << " directory created.";
-                    }
-                    else if(serverfilesystem->isPathRelative(commandList[1])){
-                        cout << "257 " << serverfilesystem->getWorkingDirectory() << "/" << commandList[1] << " directory created."<< endl;
-                    }
-                    FileHandler::writeToFile("User has entered command: MKD " + commandList[1]);
-                }
-                return false;
-            }
-            else if (commandList[0] == "DELE"){
-                if(commandList[1] == "-d"){
-                    serverfilesystem->removeDirectory(commandList[2]);
-                    cout << "250 " << commandList[2] << " directory deleted." << endl;
-                    FileHandler::writeToFile("User has entered command: DELE -D " + commandList[2]);
-                    return false;
-                }
-                else if(commandList[1] == "-f"){
-                    serverfilesystem->removeFile(commandList[2]);
-                    cout << "250 " << commandList[2] << " file deleted." << endl;
-                    FileHandler::writeToFile("User has entered command: DELE -f " + commandList[2]);
-                    return false;
-                }
-                else{
-                    error("DELE argeuments are -d or -f, you entered wrong...");
-                    return false;
-                }
-            }
-            else if(commandList[0] == "LS"){
-                serverfilesystem->listFiles();
-                FileHandler::writeToFile("User has entered command: LS");
-                return false;
-            }
-            else if(commandList[0] == "CWD"){
-                if (commandList.size() != 2){
-                    error("CWD command should have 2 arguments.");
-                }
-                else{
-                    serverfilesystem->changeWorkingDirectory(commandList[1]);
-                    cout << "250 Directory changed to " << commandList[1] << endl;
-                    FileHandler::writeToFile("User has entered command: CWD " + commandList[1]);
-                }
-                return false;
-            }
-            else if (commandList[0] == "RENAME"){
-                if (commandList.size() != 3){
-                    error("RENAME command should have 3 arguments.");
-                }
-                else{
-                    serverfilesystem->RenameFile(commandList[1].c_str(), commandList[2].c_str());
-                    cout << "250 Rename successful: " << commandList[1] << " renamed to " << commandList[2];
-                    FileHandler::writeToFile("User has entered command: RENAME " + commandList[1] + " " + commandList[2]);
-                }
-                return false;
-            }
-            else if (commandList[0] == "RETR"){
-                cout << "this is a download file command" << endl;
-                FileHandler::writeToFile("User has entered command: RETR");
-                return false;
-            }
-            else if (commandList[0] == "HELP"){
-                cout << "=======================HELP==========================" << endl;
-                FileHandler::writeToFile("User has entered command: HELP");
-                return false;
-            }
-            else if (commandList[0] == "quit"){
-                cout << "221 Goodbye!" << endl;
-                FileHandler::writeToFile("User has entered command: quit");
-                return true;
-            }
-            
-            cout << "this is an invalid command" << endl;
-            return false;
-            
-    }
-
-    void clearBuffer(){this->commandList.clear();}
-
-
-    private:
-        vector<string> commandList;
-        FileSystem* serverfilesystem;
-        void split(string s, string delimiter = " ") {
-            size_t pos_start = 0, pos_end, delim_len = delimiter.length();
-            string token;
-            while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
-                token = s.substr (pos_start, pos_end - pos_start);
-                pos_start = pos_end + delim_len;
-                this->commandList.push_back (token);
-            }
-
-            this->commandList.push_back (s.substr (pos_start));
-        }
-
-};
-
-
-
 class JsonParser{
     public:
         JsonParser(string fileName){
@@ -298,6 +179,193 @@ class JsonParser{
     private:
         Json::Value actualJson;
         Json::Reader reader;
+};
+
+class NetworkHandler{
+
+    public:
+        NetworkHandler() : jsparser("config.json"){
+            this -> serverSocket = -1;
+            this -> clientSocket = -1;
+            serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+            if (serverSocket == -1) {
+                cout << "Server: Socket creation failed" << std::endl;
+                return;
+            }
+            serverAddress.sin_family = AF_INET;
+            //serverAddress.sin_port = htons(stoi(this->jsparser.getValueFromJson("Port")));
+            serverAddress.sin_port = htons(12345);
+            serverAddress.sin_addr.s_addr = INADDR_ANY;
+            //serverAddress.sin_addr.s_addr = this->jsparser.getValueFromJson("IP");
+
+            if (bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1) {
+                std::cerr << "Server: Bind failed" << std::endl;
+                return;
+            }
+
+            if (listen(serverSocket, 5) == -1) {
+                std::cerr << "Server: Listen failed" << std::endl;
+                return;
+            }
+
+            cout << "Server is listening for connections..." << std::endl;
+            FileHandler::writeToFile("Server is UP and is listening for connections ...");
+
+            // Accept a connection from a client
+            clientSocket = accept(serverSocket, nullptr, nullptr);
+            if (clientSocket == -1) {
+                std::cerr << "Server: Accept failed" << std::endl;
+                return;
+            }
+
+        }
+
+        void sendData(const std::string& data) {
+            if (clientSocket != -1) {
+                send(clientSocket, data.c_str(), data.length(), 0);
+            }
+        }
+
+
+    private:
+        JsonParser jsparser;
+        int serverSocket;
+        int clientSocket;
+        sockaddr_in serverAddress;
+};
+
+class CommandParser{
+    public:
+        CommandParser(string serverRootDirectory) {
+            serverfilesystem = new FileSystem(serverRootDirectory);
+            networkHandler = new NetworkHandler();
+            this->commandList.clear();
+        }
+        bool commandFactory(string command){
+            split(command);
+                
+            if(commandList[0] == "PWD"){
+                if (commandList.size() != 1){
+                    error("PWD Command Used with invalid number of Arguments.");
+                }
+                else{
+                    serverfilesystem->PrintWorkingDirectory();
+                    networkHandler->sendData("PWD");
+                    FileHandler::writeToFile("User has entered command: PWD");
+                }
+                return false;
+            }
+            else if (commandList[0] == "MKD"){
+                if (commandList.size() != 2){
+                    error("MKD command used with invalid Number of arguments.");
+                }
+                else{
+                    serverfilesystem->makeNewDirectory(commandList[1]);
+                    if(serverfilesystem->isPathAbsolute(commandList[1])){
+                        cout << "257 " << commandList[1] << " directory created.";
+                        networkHandler->sendData("257 " + commandList[1] + " directory created.");
+                    }
+                    else if(serverfilesystem->isPathRelative(commandList[1])){
+                        cout << "257 " << serverfilesystem->getWorkingDirectory() << "/" << commandList[1] << " directory created."<< endl;
+                        networkHandler->sendData("257 " + serverfilesystem->getWorkingDirectory() + "/" + commandList[1] + " directory created.");
+                    }
+                    FileHandler::writeToFile("User has entered command: MKD " + commandList[1]);
+                }
+                return false;
+            }
+            else if (commandList[0] == "DELE"){
+                if(commandList[1] == "-d"){
+                    serverfilesystem->removeDirectory(commandList[2]);
+                    cout << "250 " << commandList[2] << " directory deleted." << endl;
+                    networkHandler->sendData("250 " + commandList[2] + " directory deleted.");
+                    FileHandler::writeToFile("User has entered command: DELE -D " + commandList[2]);
+                    return false;
+                }
+                else if(commandList[1] == "-f"){
+                    serverfilesystem->removeFile(commandList[2]);
+                    cout << "250 " << commandList[2] << " file deleted." << endl;
+                    networkHandler->sendData("250 " + commandList[2] + " file deleted.");
+                    FileHandler::writeToFile("User has entered command: DELE -f " + commandList[2]);
+                    return false;
+                }
+                else{
+                    error("DELE argeuments are -d or -f, you entered wrong...");
+                    return false;
+                }
+            }
+            else if(commandList[0] == "LS"){
+                serverfilesystem->listFiles();
+                networkHandler->sendData("LS command ...");
+                FileHandler::writeToFile("User has entered command: LS");
+                return false;
+            }
+            else if(commandList[0] == "CWD"){
+                if (commandList.size() != 2){
+                    error("CWD command should have 2 arguments.");
+                }
+                else{
+                    serverfilesystem->changeWorkingDirectory(commandList[1]);
+                    cout << "250 Directory changed to " << commandList[1] << endl;
+                    networkHandler->sendData("250 Directory changed to " + commandList[1]);
+                    FileHandler::writeToFile("User has entered command: CWD " + commandList[1]);
+                }
+                return false;
+            }
+            else if (commandList[0] == "RENAME"){
+                if (commandList.size() != 3){
+                    error("RENAME command should have 3 arguments.");
+                }
+                else{
+                    serverfilesystem->RenameFile(commandList[1].c_str(), commandList[2].c_str());
+                    cout << "250 Rename successful: " << commandList[1] << " renamed to " << commandList[2];
+                    networkHandler->sendData("250 Rename successful: " + commandList[1] + " renamed to " + commandList[2]);
+                    FileHandler::writeToFile("User has entered command: RENAME " + commandList[1] + " " + commandList[2]);
+                }
+                return false;
+            }
+            else if (commandList[0] == "RETR"){
+                cout << "this is a download file command" << endl;
+                networkHandler->sendData("this is a download file command");
+                FileHandler::writeToFile("User has entered command: RETR");
+                return false;
+            }
+            else if (commandList[0] == "HELP"){
+                cout << "=======================HELP==========================" << endl;
+                networkHandler->sendData("=======================HELP==========================");
+                FileHandler::writeToFile("User has entered command: HELP");
+                return false;
+            }
+            else if (commandList[0] == "quit"){
+                cout << "221 Goodbye!" << endl;
+                networkHandler->sendData("quit");
+                FileHandler::writeToFile("User has entered command: quit");
+                return true;
+            }
+            
+            cout << "this is an invalid command" << endl;
+            return false;
+            
+    }
+
+    void clearBuffer(){this->commandList.clear();}
+
+
+    private:
+        vector<string> commandList;
+        FileSystem* serverfilesystem;
+        NetworkHandler* networkHandler;
+        void split(string s, string delimiter = " ") {
+            size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+            string token;
+            while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
+                token = s.substr (pos_start, pos_end - pos_start);
+                pos_start = pos_end + delim_len;
+                this->commandList.push_back (token);
+            }
+
+            this->commandList.push_back (s.substr (pos_start));
+        }
+
 };
 
 class User{
@@ -338,6 +406,7 @@ class FTPServer{
     
     public:
         FTPServer() : jsparser("config.json") {
+            
             this->parser = new CommandParser(this->jsparser.getValueFromJson("rootDirectory"));
             this->portNumber = this->jsparser.getValueFromJson("Port");
             this->IP = this->jsparser.getValueFromJson("IP");
@@ -463,6 +532,5 @@ class FTPServer{
 int main() {
     FileHandler::setFilePath("/home/peyman/Desktop/CPP/FTP_Server/FTPSERVER/log.txt");
     FTPServer server;
-    //FileHandler::writeToFile("Hello, World!");
     return 0;
 }
