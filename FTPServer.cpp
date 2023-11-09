@@ -346,7 +346,18 @@ class CommandParser{
                 return false;
             }
             else if (commandList[0] == "HELP"){
-                networkHandler->sendData("=======================HELP==========================");
+                const string longString = R""""(
+                ==========================================HELP==================================================
+                you can enter following commands:
+                    PWD  : prints working directory.
+                    LS   : list all files in the current path.
+                    MKD directory_name : creates directory_name in current path.
+                    DELE [-d] [-f] dir/file_name : deletes directory or file in current path.
+                    RENAME oldfile newfile : renames oldfile to newfile.
+                    RETR file_name : downloads file_name from FTP server if the file exists in the current path. 
+                    quit : for closing the program.
+                )"""";
+                networkHandler->sendData(longString);
                 FileHandler::writeToFile("User has entered command: HELP");
                 return false;
             }
