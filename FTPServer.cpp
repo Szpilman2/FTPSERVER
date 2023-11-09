@@ -53,6 +53,23 @@ class FileSystem{
             this -> setWorkingDirectory(dirPath);
             this -> setRootDirectory(dirPath);
         }
+
+        bool existsDirecotryInPath(string directoryName){
+            for (const auto &entry : filesystem::directory_iterator(this->workingDirectory)){
+                if (entry.path().filename() == directoryName){
+                    return true;
+                }
+            }
+            return false;
+        }
+        bool existsFileInPath(string fileName){
+            for (const auto &entry : filesystem::directory_iterator(this->workingDirectory)){
+                if (entry.path().filename() == fileName){
+                    return true;
+                }
+            }
+            return false;
+        }
         
         void RenameFile(const char* oldName, const char* newName){
             rename( oldName, newName);
@@ -144,23 +161,6 @@ class FileSystem{
         void setWorkingDirectory(filesystem::path newPath){
             this->workingDirectory = newPath;
         }
-        bool existsDirecotryInPath(string directoryName){
-            for (const auto &entry : filesystem::directory_iterator(this->workingDirectory)){
-                if (entry.path().filename() == directoryName){
-                    return true;
-                }
-            }
-            return false;
-        }
-        bool existsFileInPath(string fileName){
-            for (const auto &entry : filesystem::directory_iterator(this->workingDirectory)){
-                if (entry.path().filename() == fileName){
-                    return true;
-                }
-            }
-            return false;
-        }
-    
 };
 
 class JsonParser{
@@ -331,7 +331,17 @@ class CommandParser{
                 return false;
             }
             else if (commandList[0] == "RETR"){
-                networkHandler->sendData("this is a download file command");
+                if (commandList.size() != 2){
+                    error("RETR command should have 2 arguments.");
+                }
+                else{
+                    if (serverfilesystem->existsFileInPath(commandList[1])){
+                        networkHandler->sendData("this is a download file command");
+                    }
+                    else{
+                        networkHandler->sendData("Required File is not in the Current Path.");
+                    }
+                }
                 FileHandler::writeToFile("User has entered command: RETR");
                 return false;
             }
@@ -540,14 +550,14 @@ class FTPServer{
 
 int main() {
     FileHandler::setFilePath("/home/peyman/Desktop/CPP/FTP_Server/FTPSERVER/log.txt");
-    //FTPServer server;
-    std::vector<int> A = {1,2,3,4,5,6};
+    FTPServer server;
+    // std::vector<int> A = {1,2,3,4,5,6};
     
-    for (int a : tq::tqdm(A))
-    {
-        // do some heavy work, (e.g. sleep(1) to test, and #include <unistd.h>)
-        sleep(1);
-    }
-    cout << endl;
+    // for (int a : tq::tqdm(A))
+    // {
+    //     // do some heavy work, (e.g. sleep(1) to test, and #include <unistd.h>)
+    //     sleep(1);
+    // }
+    // cout << endl;
     return 0;
 }
