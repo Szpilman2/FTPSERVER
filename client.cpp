@@ -6,22 +6,32 @@
 #include <unistd.h>
 using namespace std;
 
+/*
+change color in c++ terminal:
+    const std::string red("\033[0;31m");
+    const std::string green("\033[1;32m");
+    const std::string yellow("\033[1;33m");
+    const std::string cyan("\033[0;36m");
+    const std::string magenta("\033[0;35m");
+    const std::string reset("\033[0m");
+*/
+
 class Client {
 public:
     Client(const char* serverIP, int port) : clientSocket(-1) {
-        // Create a socket
+        
         clientSocket = socket(AF_INET, SOCK_STREAM, 0);
         if (clientSocket == -1) {
             std::cerr << "Client: Socket creation failed" << std::endl;
             return;
         }
 
-        // Server address and port to connect to
+        
         serverAddress.sin_family = AF_INET;
-        serverAddress.sin_port = htons(12345); // Server port number
-        serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1"); // Server IP address
+        serverAddress.sin_port = htons(12345); 
+        serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1"); 
 
-        // Connect to the server
+        
         if (connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1) {
             std::cerr << "Client: Connection failed" << std::endl;
             return;
@@ -29,7 +39,6 @@ public:
     }
 
     ~Client() {
-        // Close the client socket
         close(clientSocket);
     }
 
@@ -39,14 +48,13 @@ public:
         }
     }
 
-    // Receive data from the server
     std::string receiveData() {
         char buffer[1024];
         ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
         if (bytesRead <= 0) {
             return "";
         }
-        buffer[bytesRead] = '\0'; // Null-terminate the received data
+        buffer[bytesRead] = '\0'; 
         return std::string(buffer);
     }
 
@@ -60,20 +68,19 @@ private:
 };
 
 int main() {
-    Client client("127.0.0.1", 12345);  // Connect to the server at IP address "127.0.0.1" and port 12345
+    Client client("127.0.0.1", 12345);
+    const std::string cyan("\033[0;36m");
+    const std::string green("\033[1;32m");;
 
     if (client.getClientSocket() != -1) {
-        // Client is connected to the server
-
-        // Send data to the server
-        //client.sendData("Hello, Server!");
+        
         bool valid = true;
         string message;
-        // Receive data from the server
+        
         while(valid){
             std::string receivedData = client.receiveData();
             if (!receivedData.empty()) {
-                std::cout << "Received from server: " << receivedData << std::endl;
+                std::cout << green << "Received from server: " << receivedData << std::endl;
                 if (receivedData == "quit"){
                     valid = false;
                     break;
@@ -83,6 +90,7 @@ int main() {
                     valid = false;
                     break;
             }
+            cout << cyan << "Enter Command: \t"; 
             getline(cin, message);
             client.sendData(message);
         }
