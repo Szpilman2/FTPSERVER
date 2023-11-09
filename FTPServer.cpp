@@ -8,7 +8,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
-
+#include "tqdm.hpp"
 using namespace std;
 
 /*
@@ -540,6 +540,14 @@ class FTPServer{
 
 int main() {
     FileHandler::setFilePath("/home/peyman/Desktop/CPP/FTP_Server/FTPSERVER/log.txt");
-    FTPServer server;
+    //FTPServer server;
+    std::vector<int> A = {1,2,3,4,5,6};
+    
+    for (int a : tq::tqdm(A))
+    {
+        // do some heavy work, (e.g. sleep(1) to test, and #include <unistd.h>)
+        sleep(1);
+    }
+    cout << endl;
     return 0;
 }
