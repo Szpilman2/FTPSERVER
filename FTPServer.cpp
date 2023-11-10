@@ -234,6 +234,36 @@ class NetworkHandler{
             return std::string(buffer);
         }
 
+        void sendFile(const std::string& filePath) {
+            std::ifstream file(filePath, std::ios::binary | std::ios::ate);
+            if (!file.is_open()) {
+                std::cerr << "Server: Unable to open file: " << filePath << std::endl;
+                return;
+            }
+
+            std::streamsize fileSize = file.tellg();
+            file.seekg(0, std::ios::beg);
+
+            //Send the file size as a binary value
+            send(clientSocket, reinterpret_cast<const char*>(&fileSize), sizeof(fileSize), 0);
+
+            // Send the filename
+            //this->sendData(fileName);
+
+            // Prepare a buffer to read and send the file in chunks
+            const std::size_t bufferSize = 1024;
+            char buffer[bufferSize];
+
+            // Send the file in chunks
+            while (!file.eof()) {
+                cout << "Server: I am sending the file..."<<endl;
+                file.read(buffer, bufferSize);
+                send(clientSocket, buffer, file.gcount(), 0);
+            }
+            cout << "Server: sending is done ..."<<endl;
+            file.close();
+        }
+
 
     private:
         JsonParser jsparser;
@@ -336,7 +366,9 @@ class CommandParser{
                 }
                 else{
                     if (serverfilesystem->existsFileInPath(commandList[1])){
-                        networkHandler->sendData("this is a download file command");
+                        networkHandler->sendFile(serverfilesystem->PrintWorkingDirectory()+"/"+commandList[1]);
+                        networkHandler->sendData("sent file successfully ...");
+                        //cout << serverfilesystem->PrintWorkingDirectory()+"/"+commandList[1];
                     }
                     else{
                         networkHandler->sendData("Required File is not in the Current Path.");

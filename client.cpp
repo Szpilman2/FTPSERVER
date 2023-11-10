@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <fstream>
 using namespace std;
 
 /*
@@ -62,6 +63,42 @@ public:
         return this->clientSocket;
     }
 
+
+    void receiveFileFromServer() {
+        // Receive the filename
+        //const std::string& savePath
+        //std::string fileName = receiveFromServer();
+        std::string fileName = "downloadedFile";
+        // Create a file for writing
+        //savePath + "/" + 
+        std::ofstream outFile(fileName, std::ios::binary);
+
+        std::streamsize fileSize;
+        recv(clientSocket, reinterpret_cast<char*>(&fileSize), sizeof(fileSize), 0);
+        cout << "Client: fileSize: " << fileSize << endl;
+
+        // Receive and write the file in chunks
+        const std::size_t bufferSize = 1024;
+        char buffer[bufferSize];
+        std::streamsize bytesRead;
+        std::streamsize totalBytesRead = 0;
+
+        while (totalBytesRead < fileSize) {
+            bytesRead = recv(clientSocket, buffer, std::min(fileSize - totalBytesRead, static_cast<std::streamsize>(bufferSize)), 0);
+
+            if (bytesRead <= 0) {
+                break;  // Exit the loop when there is nothing more to receive or an error occurs
+            }
+
+            outFile.write(buffer, bytesRead);
+            totalBytesRead += bytesRead;
+        }
+
+        outFile.close();
+    }
+
+
+
 private:
     int clientSocket;
     sockaddr_in serverAddress;
@@ -78,6 +115,7 @@ int main() {
         string message;
         
         while(valid){
+
             std::string receivedData = client.receiveData();
             if (!receivedData.empty()) {
                 std::cout << green << "Received from server: " << receivedData << std::endl;
@@ -93,6 +131,11 @@ int main() {
             cout << cyan << "Enter Command: \t"; 
             getline(cin, message);
             client.sendData(message);
+
+            if (message.find("RETR") != std::string::npos){
+                client.receiveFileFromServer();
+                cout << "Received file successfully ..." << endl;
+            }
         }
     }
 
