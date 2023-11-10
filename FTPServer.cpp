@@ -404,6 +404,7 @@ class CommandParser{
                         networkHandler->sendData("sent file successfully ...");
                     }
                     else{
+                        cout << "I am here in server" << endl;
                         networkHandler->sendData("ERROR");
                         networkHandler->sendData("Required File is not on the current path.");
                     }

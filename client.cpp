@@ -153,7 +153,6 @@ int main() {
             if (message.find("RETR") != std::string::npos){
                 string receivedMessage = client.receiveData();
                 if(!(receivedMessage.find("ERROR") != std::string::npos)){
-                    cout << "I am here..." << endl;
                     client.receiveFileFromServer();
                 }
             }
