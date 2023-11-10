@@ -1,21 +1,12 @@
-
-
-
-jsoncpp installation for Linux (Debian Based): ```sudo apt install libjson-cpp-dev```
-
-how to compile?
-``` g++ -std=c++17 FTPServer.cpp -o server -ljsoncpp ```
-``` g++ -std=c++17 client.cpp -o client ```
-
 # FTP SERVER
 
 Simple FTP Server Implemented in C++
 
 ### Prerequisites
 
-You need jsonCpp library for compiling this project. you can download jsonCpp with ```sudo apt install libjson-cpp-dev``` command. Actually this command only works in Debian based linux. I found similar commands for another distros.(it is easy to find if you search on the web.)
+To compile this project, you require the jsonCpp library. You can obtain jsonCpp by using the command ```sudo apt install libjson-cpp-dev```. Please note that this command specifically applies to Debian-based Linux distributions. For other distributions, alternative commands can be found easily through online search.
 
-but if you are veteran you can go with instructions provided with jsonCpp official github repository.
+For experienced users, you may refer to the instructions provided on the official jsonCpp GitHub repository ['Link'](https://github.com/open-source-parsers/jsoncpp).
 
 
 ## Getting Started
@@ -112,10 +103,10 @@ See also the list of [contributors](https://github.com/your/project/contributors
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
+This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/Szpilman2/FTPSERVER/blob/main/LICENSE) file for details
+<!-- 
 ## Acknowledgments
 
 * Hat tip to anyone whose code was used
 * Inspiration
-* etc
+* etc -->
