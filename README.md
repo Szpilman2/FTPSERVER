@@ -1,12 +1,19 @@
 # FTP SERVER
+FTP, or File Transfer Protocol, is a standard network protocol used to transfer files from one host to another over a TCP-based network, such as the internet or an intranet. An FTP server is a software application or service running on a server that provides the functionality for clients to connect and perform file-related operations like uploading, downloading, renaming, and deleting files.
 
-Simple FTP Server Implemented in C++
+FTP operates on a client-server model, where the client initiates a connection to the server to perform file transfer operations. The server manages access to files and directories, and it authenticates users who connect to it. FTP uses two separate channels for communication:
+
+* Control Channel: This channel is used for sending commands from the client to the server and receiving responses. (implemented :white_check_mark:)
+
+* Data Channel: This channel is used for the actual transfer of files. (implemented :white_check_mark:)
+
+This project is a basic FTP server implemented in C++ that utilizes a JSON configuration file to configure both the server and client. Note that certain sections of this file have been omitted in my implementation, but customization can be easily performed if desired.
 
 ### Prerequisites
 
 To compile this project, you require the jsonCpp library. You can obtain jsonCpp by using the command ```sudo apt install libjson-cpp-dev```. Please note that this command specifically applies to Debian-based Linux distributions. For other distributions, alternative commands can be found easily through online search.
 
-For experienced users, you may refer to the instructions provided on the official jsonCpp GitHub repository ['Link'](https://github.com/open-source-parsers/jsoncpp).
+For experienced users, you may refer to the instructions provided on the official jsonCpp GitHub repository [Link](https://github.com/open-source-parsers/jsoncpp).
 
 
 ## Getting Started
@@ -104,9 +111,7 @@ See also the list of [contributors](https://github.com/your/project/contributors
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](https://github.com/Szpilman2/FTPSERVER/blob/main/LICENSE) file for details
-<!-- 
+
 ## Acknowledgments
 
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc -->
+* I employed ChatGPT (version 3.5) to rephrase this README file.
