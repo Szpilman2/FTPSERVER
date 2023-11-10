@@ -320,7 +320,7 @@ class CommandParser{
                 
             if(commandList[0] == "PWD"){
                 if (commandList.size() != 1){
-                    error("PWD Command Used with invalid number of Arguments.");
+                    networkHandler->sendData("PWD Command Used with invalid number of Arguments.");
                 }
                 else{
                     networkHandler->sendData("257 " + serverfilesystem->PrintWorkingDirectory() + " is the current directory.");
@@ -330,7 +330,7 @@ class CommandParser{
             }
             else if (commandList[0] == "MKD"){
                 if (commandList.size() != 2){
-                    error("MKD command used with invalid Number of arguments.");
+                    networkHandler->sendData("MKD command used with invalid Number of arguments.");
                 }
                 else{
                     serverfilesystem->makeNewDirectory(commandList[1]);
@@ -358,7 +358,7 @@ class CommandParser{
                     return false;
                 }
                 else{
-                    error("DELE argeuments are -d or -f, you entered wrong...");
+                    networkHandler->sendData("DELE argeuments are -d or -f, you entered wrong...");
                     return false;
                 }
             }
@@ -373,7 +373,7 @@ class CommandParser{
             }
             else if(commandList[0] == "CWD"){
                 if (commandList.size() != 2){
-                    error("CWD command should have 2 arguments.");
+                    networkHandler->sendData("CWD command should have 2 arguments.");
                 }
                 else{
                     serverfilesystem->changeWorkingDirectory(commandList[1]);
@@ -384,7 +384,7 @@ class CommandParser{
             }
             else if (commandList[0] == "RENAME"){
                 if (commandList.size() != 3){
-                    error("RENAME command should have 3 arguments.");
+                    networkHandler->sendData("RENAME command should have 3 arguments.");
                 }
                 else{
                     serverfilesystem->RenameFile(commandList[1].c_str(), commandList[2].c_str());
@@ -395,18 +395,12 @@ class CommandParser{
             }
             else if (commandList[0] == "RETR"){
                 if (commandList.size() != 2){
-                    error("RETR command should have 2 arguments.");
+                    networkHandler->sendData("RETR command should have 2 arguments.");
                 }
                 else{
                     if (serverfilesystem->existsFileInPath(commandList[1])){
-                        networkHandler->sendData("OK");
                         networkHandler->sendFile(serverfilesystem->PrintWorkingDirectory()+"/"+commandList[1]);
                         networkHandler->sendData("sent file successfully ...");
-                    }
-                    else{
-                        cout << "I am here in server" << endl;
-                        networkHandler->sendData("ERROR");
-                        networkHandler->sendData("Required File is not on the current path.");
                     }
                 }
                 FileHandler::writeToFile("User has entered command: RETR");

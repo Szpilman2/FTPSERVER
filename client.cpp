@@ -151,10 +151,11 @@ int main() {
             client.sendData(message);
 
             if (message.find("RETR") != std::string::npos){
-                string receivedMessage = client.receiveData();
-                if(!(receivedMessage.find("ERROR") != std::string::npos)){
-                    client.receiveFileFromServer();
-                }
+                //string receivedMessage = client.receiveData();
+                // if(!(receivedMessage.find("ERROR") != std::string::npos)){
+                //     client.receiveFileFromServer();
+                // }
+                client.receiveFileFromServer();
             }
         }
     }
