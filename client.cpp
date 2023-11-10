@@ -65,17 +65,16 @@ public:
 
 
     void receiveFileFromServer() {
-        // Receive the filename
-        //const std::string& savePath
-        //std::string fileName = receiveFromServer();
-        std::string fileName = "downloadedFile";
-        // Create a file for writing
-        //savePath + "/" + 
-        std::ofstream outFile(fileName, std::ios::binary);
-
+        
         std::streamsize fileSize;
         recv(clientSocket, reinterpret_cast<char*>(&fileSize), sizeof(fileSize), 0);
         cout << "Client: fileSize: " << fileSize << endl;
+
+        char fileNameBuffer[1024];
+        recv(clientSocket, fileNameBuffer, sizeof(fileNameBuffer), 0);
+        std::string fileName(fileNameBuffer);
+        std::ofstream outFile(fileName, std::ios::binary);
+        cout << "Client: fileName: " << fileName << endl;
 
         // Receive and write the file in chunks
         const std::size_t bufferSize = 1024;
@@ -134,7 +133,6 @@ int main() {
 
             if (message.find("RETR") != std::string::npos){
                 client.receiveFileFromServer();
-                cout << "Received file successfully ..." << endl;
             }
         }
     }

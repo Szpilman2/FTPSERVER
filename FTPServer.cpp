@@ -247,8 +247,12 @@ class NetworkHandler{
             //Send the file size as a binary value
             send(clientSocket, reinterpret_cast<const char*>(&fileSize), sizeof(fileSize), 0);
 
-            // Send the filename
-            //this->sendData(fileName);
+            // send the file name to the client.
+            std::string fileName = filesystem::path(filePath).filename();
+            const char* fileNameCStr = fileName.c_str();
+            size_t fileNameSize = fileName.size() + 1;  // Include the null terminator
+            send(clientSocket, fileNameCStr, fileNameSize, 0);
+
 
             // Prepare a buffer to read and send the file in chunks
             const std::size_t bufferSize = 1024;
@@ -256,11 +260,9 @@ class NetworkHandler{
 
             // Send the file in chunks
             while (!file.eof()) {
-                cout << "Server: I am sending the file..."<<endl;
                 file.read(buffer, bufferSize);
                 send(clientSocket, buffer, file.gcount(), 0);
             }
-            cout << "Server: sending is done ..."<<endl;
             file.close();
         }
 
@@ -368,7 +370,6 @@ class CommandParser{
                     if (serverfilesystem->existsFileInPath(commandList[1])){
                         networkHandler->sendFile(serverfilesystem->PrintWorkingDirectory()+"/"+commandList[1]);
                         networkHandler->sendData("sent file successfully ...");
-                        //cout << serverfilesystem->PrintWorkingDirectory()+"/"+commandList[1];
                     }
                     else{
                         networkHandler->sendData("Required File is not in the Current Path.");
