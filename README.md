@@ -19,19 +19,21 @@ but if you are veteran you can go with instructions provided with jsonCpp offici
 
 
 ## Getting Started
-after installing Prerequisites you can compile the code with the following command.
-for compiling server use this command:
+After installing the prerequisites, you can compile the code using the following commands.
+
+To compile the server, use the command:
 ```
 g++ -std=c++17 FTPServer.cpp -o server -ljsoncpp
 ```
-and for compiling client use this command:
+To compile the client, use the command:
 ```
 g++ -std=c++17 client.cpp -o client
 ```
-after compiling the code you should open two seperate Terminals and in one of them type ./server and in another type ./client
+Once the code is compiled, open two separate terminals. In one terminal, type ./server, and in the other, type ./client.
 
-if you do so, it takes your username (format : User user_name) and takes your password (format: Pass your_pass) and if the password is correct then you can send commands to the server. all the commands are like this:
+Upon execution, the program prompts you to enter your username (format: User user_name) and password (format: Pass your_pass). If the password is correct, you gain access to send commands to the server. All commands follow a similar format.
 
+```
 ==========================================HELP==================================================
                 you can enter following commands:
                     PWD  : prints working directory.
@@ -41,6 +43,8 @@ if you do so, it takes your username (format : User user_name) and takes your pa
                     RENAME oldfile newfile : renames oldfile to newfile.
                     RETR file_name : downloads file_name from FTP server if the file exists in the current path. 
                     quit : for closing the program.
+
+```
 
 
 <!-- 
