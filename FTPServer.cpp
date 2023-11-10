@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <arpa/inet.h>
 #include "tqdm.hpp"
 using namespace std;
 
@@ -186,8 +187,12 @@ class NetworkHandler{
         NetworkHandler() : jsparser("config.json"){
             this -> serverSocket = -1;
             this -> clientSocket = -1;
+            this -> serverdataSocket = -1;
+
             serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-            if (serverSocket == -1) {
+            serverdataSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+            if (serverSocket == -1 || serverdataSocket == -1) {
                 cout << "Server: Socket creation failed" << std::endl;
                 return;
             }
@@ -195,6 +200,7 @@ class NetworkHandler{
             //serverAddress.sin_port = htons(stoi(this->jsparser.getValueFromJson("Port")));
             serverAddress.sin_port = htons(12345);
             serverAddress.sin_addr.s_addr = INADDR_ANY;
+            //serverAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
             //serverAddress.sin_addr.s_addr = this->jsparser.getValueFromJson("IP");
 
             if (bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1) {
@@ -212,6 +218,28 @@ class NetworkHandler{
 
             clientSocket = accept(serverSocket, nullptr, nullptr);
             if (clientSocket == -1) {
+                std::cerr << "Server: Accept failed" << std::endl;
+                return;
+            }
+
+            //------------------------------------------------------------------------------
+            dataAddress.sin_family = AF_INET;
+            dataAddress.sin_addr.s_addr = INADDR_ANY;
+            //dataAddress.sin_addr.s_addr = inet_addr("127.0.0.1"); 
+            dataAddress.sin_port = htons(12543);
+
+            if (bind(serverdataSocket, (struct sockaddr*)&dataAddress, sizeof(dataAddress)) == -1) {
+                std::cerr << "Server: Bind failed" << std::endl;
+                return;
+            }
+
+            if (listen(serverdataSocket, 5) == -1) {
+                std::cerr << "Server: Listen failed" << std::endl;
+                return;
+            }
+
+            clientdataSocket = accept(serverdataSocket, nullptr, nullptr);
+            if (clientdataSocket == -1) {
                 std::cerr << "Server: Accept failed" << std::endl;
                 return;
             }
@@ -261,7 +289,7 @@ class NetworkHandler{
             // Send the file in chunks
             while (!file.eof()) {
                 file.read(buffer, bufferSize);
-                send(clientSocket, buffer, file.gcount(), 0);
+                send(clientdataSocket, buffer, file.gcount(), 0);
             }
             file.close();
         }
@@ -270,8 +298,11 @@ class NetworkHandler{
     private:
         JsonParser jsparser;
         int serverSocket;
+        int serverdataSocket;
         int clientSocket;
+        int clientdataSocket;
         sockaddr_in serverAddress;
+        sockaddr_in dataAddress;
 };
 
 class CommandParser{
@@ -368,11 +399,13 @@ class CommandParser{
                 }
                 else{
                     if (serverfilesystem->existsFileInPath(commandList[1])){
+                        networkHandler->sendData("OK");
                         networkHandler->sendFile(serverfilesystem->PrintWorkingDirectory()+"/"+commandList[1]);
                         networkHandler->sendData("sent file successfully ...");
                     }
                     else{
-                        networkHandler->sendData("Required File is not in the Current Path.");
+                        networkHandler->sendData("ERROR");
+                        networkHandler->sendData("Required File is not on the current path.");
                     }
                 }
                 FileHandler::writeToFile("User has entered command: RETR");

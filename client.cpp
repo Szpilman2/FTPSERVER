@@ -19,10 +19,12 @@ change color in c++ terminal:
 
 class Client {
 public:
-    Client(const char* serverIP, int port) : clientSocket(-1) {
+    Client(const char* serverIP, int port) : clientSocket(-1),clientDataSocket(-1) {
         
         clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-        if (clientSocket == -1) {
+        clientDataSocket = socket(AF_INET,SOCK_STREAM, 0);
+
+        if (clientSocket == -1 || clientDataSocket == -1) {
             std::cerr << "Client: Socket creation failed" << std::endl;
             return;
         }
@@ -34,13 +36,27 @@ public:
 
         
         if (connect(clientSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1) {
-            std::cerr << "Client: Connection failed" << std::endl;
+            std::cerr << "Client1: Connection failed" << std::endl;
+            cout << "I am Ok." << endl;
             return;
         }
+
+        
+        dataAddress.sin_family = AF_INET;
+        dataAddress.sin_port = htons(12543);
+        dataAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
+        cout << "I am on second" << endl;
+
+        if (connect(clientDataSocket, (struct sockaddr*)&dataAddress, sizeof(dataAddress)) == -1) {
+            std::cerr << "Client2: Connection failed" << std::endl;
+            return;
+        }
+
     }
 
     ~Client() {
         close(clientSocket);
+        close(clientDataSocket);
     }
 
     void sendData(const std::string& data) {
@@ -83,7 +99,7 @@ public:
         std::streamsize totalBytesRead = 0;
 
         while (totalBytesRead < fileSize) {
-            bytesRead = recv(clientSocket, buffer, std::min(fileSize - totalBytesRead, static_cast<std::streamsize>(bufferSize)), 0);
+            bytesRead = recv(clientDataSocket, buffer, std::min(fileSize - totalBytesRead, static_cast<std::streamsize>(bufferSize)), 0);
 
             if (bytesRead <= 0) {
                 break;  // Exit the loop when there is nothing more to receive or an error occurs
@@ -100,13 +116,16 @@ public:
 
 private:
     int clientSocket;
+    int clientDataSocket;
     sockaddr_in serverAddress;
+    sockaddr_in dataAddress;
 };
 
 int main() {
     Client client("127.0.0.1", 12345);
     const std::string cyan("\033[0;36m");
-    const std::string green("\033[1;32m");;
+    const std::string green("\033[1;32m");
+    const std::string red("\033[0;31m");
 
     if (client.getClientSocket() != -1) {
         
@@ -132,10 +151,15 @@ int main() {
             client.sendData(message);
 
             if (message.find("RETR") != std::string::npos){
-                client.receiveFileFromServer();
+                string receivedMessage = client.receiveData();
+                if(!(receivedMessage.find("ERROR") != std::string::npos)){
+                    cout << "I am here..." << endl;
+                    client.receiveFileFromServer();
+                }
             }
         }
     }
 
     return 0;
+
 }
