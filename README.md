@@ -33,7 +33,7 @@ Upon execution, the program prompts you to enter your username (format: User use
 
 ```
 ==========================================HELP==================================================
-                you can enter following commands:
+                You can enter following commands:
                     PWD  : prints working directory.
                     LS   : list all files in the current path.
                     MKD directory_name : creates directory_name in current path.
