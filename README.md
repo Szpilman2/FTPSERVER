@@ -1,4 +1,4 @@
-# FTP SERVER
+# Simple FTP SERVER
 FTP, or File Transfer Protocol, is a standard network protocol used to transfer files from one host to another over a TCP-based network, such as the internet or an intranet. An FTP server is a software application or service running on a server that provides the functionality for clients to connect and perform file-related operations like uploading, downloading, renaming, and deleting files.
 
 FTP operates on a client-server model, where the client initiates a connection to the server to perform file transfer operations. The server manages access to files and directories, and it authenticates users who connect to it. FTP uses two separate channels for communication:
