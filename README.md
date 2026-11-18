@@ -39,13 +39,13 @@ Upon execution, the program prompts you to enter your username (format: User use
                     MKD directory_name : creates directory_name in current path.
                     DELE [-d] [-f] dir/file_name : deletes directory or file in current path.
                     RENAME oldfile newfile : renames oldfile to newfile.
-                    RETR file_name : downloads file_name from FTP server if the file exists in the current path. 
+                    RETR file_name : downloads file_name from FTP server if the file exists in the current path.
                     quit : for closing the program.
 
 ```
 
 
-<!-- 
+<!--
 ### Installing
 
 A step by step series of examples that tell you how to get a development env running
@@ -100,7 +100,7 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 
 ## Versioning
 
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags).
 
 ## Authors
 
@@ -114,4 +114,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](https://gi
 
 ## Acknowledgments
 
-* I employed ChatGPT (version 3.5) to rephrase this README file.
+* I employed ChatGPT to rephrase this README file.
